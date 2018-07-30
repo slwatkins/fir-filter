@@ -125,7 +125,11 @@ def rand_sections(x, n, l, t=None, fs=1.0):
         
     """
     
+    if x.shape[-1]-l*n<0:
+        raise ValueError("Either n or l is too large, trying to find more random sections than the array length.")
+    
     if len(x.shape)==1:
+        
         
         if t is None:
             t = 0.0
