@@ -125,11 +125,9 @@ def rand_sections(x, n, l, t=None, fs=1.0):
         
     """
     
-    if x.shape[-1]-l*n<0:
-        raise ValueError("Either n or l is too large, trying to find more random sections than the array length.")
-    
     if len(x.shape)==1:
-        
+        if len(x)-l*n<0:
+            raise ValueError("Either n or l is too large, trying to find more random sections than are possible.")
         
         if t is None:
             t = 0.0
@@ -151,7 +149,7 @@ def rand_sections(x, n, l, t=None, fs=1.0):
 
     else:
         if t is None:
-            t = np.arange(len(x))*len(x[0])
+            t = np.arange(x.shape[0])*x.shape[-1]
         elif np.isscalar(t):
             raise ValueError(f"x is {len(x.shape)}-dimensional, t should be an array")
         elif len(x) != len(t):
@@ -164,8 +162,11 @@ def rand_sections(x, n, l, t=None, fs=1.0):
         evttimes = np.zeros(n)
         j=0
         
-        nmax = int(x.shape[-1]/l - 1)
-
+        nmax = int(x.shape[-1]/l)
+        
+        if x.shape[0]<n*nmax or nmax==0:
+            raise ValueError("Either n or l is too large, trying to find more random sections than are possible.")
+        
         choicelist = list(range(len(x))) * nmax
         np.random.shuffle(choicelist)
         rows = np.array(choicelist[:n])
