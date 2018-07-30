@@ -136,12 +136,12 @@ def rand_sections(x, n, l, t=None, fs=1.0):
         evttimes = np.zeros(n)
         j=0
         offset = 0
-        inds = np.arange(l//2, len(x) - l//2 - (l-1)*n)
+        inds = np.arange(len(x) - (l-1)*n)
 
         for ind in sorted(choice(inds, size=n, replace=False)):
             ind += offset
-            res[j] = x[ind - l//2:ind + l//2 + l%2]
-            evttimes[j] = t + ind/fs
+            res[j] = x[ind:ind + l]
+            evttimes[j] = t + (ind+l//2)/fs
             j += 1
             offset += l - 1
 
@@ -170,12 +170,12 @@ def rand_sections(x, n, l, t=None, fs=1.0):
         for key in counts.keys():
             offset = 0
             ncounts = counts[key]
-            inds = np.arange(l//2, x.shape[-1] - l//2 - (l-1)*ncounts)
+            inds = np.arange(x.shape[-1] - (l-1)*ncounts)
             
             for ind in sorted(choice(inds, size=ncounts, replace=False)):
                 ind += offset
-                res[j] = x[key, ..., ind - l//2:ind + l//2 + l%2]
-                evttimes[j] = t[key] + ind/fs
+                res[j] = x[key, ..., ind:ind + l]
+                evttimes[j] = t[key] + (ind+l//2)/fs
                 j += 1
                 offset += l - 1
     
