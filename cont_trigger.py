@@ -164,7 +164,7 @@ def rand_sections(x, n, l, t=None, fs=1.0):
         
         nmax = int(x.shape[-1]/l)
         
-        if x.shape[0]<n*nmax or nmax==0:
+        if x.shape[0]*nmax<n:
             raise ValueError("Either n or l is too large, trying to find more random sections than are possible.")
         
         choicelist = list(range(len(x))) * nmax
@@ -625,7 +625,7 @@ class OptimumFilt(object):
             elif trigthresh is not None:
                 # find where the filtered trace has an optimum amplitude greater than the specified threshold
                 if positivepulses:
-                    pulseevts_mask = np.abs(filt)>thresh*self.resolution
+                    pulseevts_mask = filt>thresh*self.resolution
                 else:
                     pulseevts_mask = filt<-thresh*self.resolution
                     
@@ -642,7 +642,7 @@ class OptimumFilt(object):
                         pulse_mask[evt_inds] = True
                         
                 # find where the ttl trigger has an optimum amplitude greater than the specified threshold
-                trigevts_mask = np.abs(self.trigfilts[ii])>trigthresh
+                trigevts_mask = self.trigfilts[ii]>trigthresh
                 trigevts = np.where(trigevts_mask)[0]
                 # find the ranges of the ttl trigger events
                 trigranges, trigvals = getchangeslessthanthresh(trigevts, 1)
@@ -678,14 +678,20 @@ class OptimumFilt(object):
                     
                     if trigtypes[irange][2]:
                         # both are triggered, use ttl as primary trigger
-                        evt_ind = evt_inds[np.argmax(np.abs(self.trigfilts[ii][evt_inds]))]
+                        evt_ind = evt_inds[np.argmax(self.trigfilts[ii][evt_inds])]
                     else:
                         # only pulse was triggered
-                        evt_ind = evt_inds[np.argmax(np.abs(filt[evt_inds]))]
+                        if positivepulses:
+                            evt_ind = evt_inds[np.argmax(filt[evt_inds])]
+                        else:
+                            evt_ind = evt_inds[np.argmin(filt[evt_inds])]
                     
                     if trigtypes[irange][1] and trigtypes[irange][2]:
                         # both are triggered
-                        pulse_ind = evt_inds[np.argmax(np.abs(filt[evt_inds]))]
+                        if positivepulses:
+                            pulse_ind = evt_inds[np.argmax(filt[evt_inds])]
+                        else:
+                            pulse_ind = evt_inds[np.argmin(filt[evt_inds])]
                         # save trigger times and amplitudes
                         pulsetimes.append(pulse_ind/self.fs + self.times[ii])
                         pulseamps.append(filt[pulse_ind])
@@ -745,8 +751,8 @@ class OptimumFilt(object):
 
     
 def optimumfilt_wrapper(filelist, template, noisepsd, tracelength, thresh, trigtemplate=None, 
-                        trigthresh=None, positivepulses=True, iotype="getChannels", saveevents=False, savepath=None, savename=None, 
-                        dumpnum=1, maxevts=1000):
+                        trigthresh=None, positivepulses=True, iotype="getChannels", saveevents=False, 
+                        savepath=None, savename=None, dumpnum=1, maxevts=1000):
     """
     Wrapper function for the OptimumFilt class for running the continuous trigger on many different files. This allows 
     the user to input a list of files that should be analyzed.
