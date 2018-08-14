@@ -4,13 +4,7 @@ from numpy.fft import ifft, fft, fftfreq, rfft, rfftfreq
 from numpy.random import choice
 from collections import Counter
 from SinglePhotonIO import getChannels
-
-import sys
-pathtowriter = "/nervascratch/samwatkins/scdmsPyTools_temp/scdmsPyTools/scdmsPyTools/BatTools"
-if pathtowriter not in sys.path:
-    sys.path.append(pathtowriter)
-    
-import rawdata_writer as writer
+from scdmsPyTools.BatTools import rawdata_writer as writer
 from math import log10, floor
 
 def round_sig(x, sig=2):
