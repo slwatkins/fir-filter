@@ -180,7 +180,7 @@ def rand_sections(x, n, l, t=None, fs=1.0):
     
     return evttimes, res
 
-def rand_sections_wrapper(filelist, n, l, nmax=10, iotype="getChannels", saveevents=False, savepath=None, savename=None,
+def rand_sections_wrapper(filelist, n, l, datashape=None, iotype="getChannels", saveevents=False, savepath=None, savename=None,
                           dumpnum=1, maxevts=1000):
     """
     Wrapper for the rand_sections function for getting random sections from many different files. This allows 
@@ -194,8 +194,10 @@ def rand_sections_wrapper(filelist, n, l, nmax=10, iotype="getChannels", saveeve
             Number of sections to choose
         l : int
             Length in bins of sections
-        nmax : int, optional
-            Max number of rows in each file. Default is 10.
+        datashape : tuple, NoneType, optional
+            The shape of the data in each file. If inputted, this should be a tuple that is 
+            (# of traces in a dataset, # of bins in each trace). If left as None, then the first file in filelist
+            is opened, and the shape of the data in it is used.
         iotype : string, optional
             Type of file to open, uses a different IO function. Default is "getChannels".
                 "getChannels" : Use SinglePhotonIO.getChannels to open the files
@@ -222,7 +224,16 @@ def rand_sections_wrapper(filelist, n, l, nmax=10, iotype="getChannels", saveeve
         
     """
     
-    choicelist = list(range(len(filelist))) * nmax
+    if datashape is None:
+        # get the shape of data from the first dataset, we assume the shape is the same for all files
+        if iotype=="stanford":
+            traces = loadstanfordfile(filelist[0])[0]
+            datashape = (traces.shape[0], traces.shape[-1])
+        else:
+            raise ValueError("Unrecognized iotype inputted.")
+    
+    nmax = int(datashape[-1]/l)
+    choicelist = list(range(len(filelist))) * nmax * datashape[0]
     np.random.shuffle(choicelist)
     rows = np.array(choicelist[:n])
     counts = Counter(rows)
